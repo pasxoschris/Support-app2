@@ -1,0 +1,14 @@
+@import "tailwindcss";
+/* Tailwind Directives */
+
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+
+/* Optional: small spacing adjustments for Digigov */
+body {
+  font-family: 'Inter', sans-serif;
+}
