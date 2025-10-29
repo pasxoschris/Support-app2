@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { supabase } from "./lib/supabaseClient";
 import { motion, AnimatePresence } from "framer-motion";
 
-const pad = (n) => String(n).padStart(2, "0");
+const pad = (n) => (n < 10 ? "0" + n : n);
 
 export default function App() {
   const now = new Date();
@@ -24,25 +24,42 @@ export default function App() {
   });
 
   const [status, setStatus] = useState("");
-  const [categories, setCategories] = useState([]);
   const firstInputRef = useRef(null);
 
-  useEffect(() => {
-    if (firstInputRef.current) firstInputRef.current.focus();
-  }, []);
-
-  // Fetch categories from Supabase
-  useEffect(() => {
-    const fetchCategories = async () => {
-      const { data, error } = await supabase
-        .from("categories")
-        .select("*")
-        .order("id");
-      if (error) console.error("Error fetching categories:", error);
-      else setCategories(data);
-    };
-    fetchCategories();
-  }, []);
+  const categories = [
+    {
+      name: "spotlight",
+      label: "Spotlight",
+      subs: [
+        { name: "spotlight_app", label: "Εφαρμογή" },
+        { name: "spotlight_network", label: "Δίκτυο" },
+      ],
+    },
+    {
+      name: "pda",
+      label: "PDA",
+      subs: [
+        { name: "pda_connection", label: "Σύνδεση" },
+        { name: "pda_orders", label: "Παραγγελίες" },
+      ],
+    },
+    {
+      name: "printer",
+      label: "Θερμικός Εκτυπωτής",
+      subs: [
+        { name: "printer_connection", label: "Σύνδεση" },
+        { name: "printer_printing", label: "Εκτύπωση" },
+      ],
+    },
+    {
+      name: "pos",
+      label: "POS",
+      subs: [
+        { name: "pos_connection", label: "Σύνδεση" },
+        { name: "pos_payments", label: "Πληρωμές" },
+      ],
+    },
+  ];
 
   const handleChange = (e) => {
     const { name, type, value, checked } = e.target;
@@ -59,22 +76,12 @@ export default function App() {
     const { error } = await supabase.from("calls").insert([form]);
 
     if (error) setStatus("Σφάλμα κατά την αποθήκευση.");
-    else {
-      setStatus("Η καταγραφή αποθηκεύτηκε επιτυχώς!");
-      // reset form
-      setForm({
-        responded_by: "",
-        call_date: initialDate,
-        call_time: initialTime,
-        caller_name: "",
-        caller_phone: "",
-        company_name: "",
-        problem_description: "",
-        remarks: "",
-        solved: false,
-      });
-    }
+    else setStatus("Η καταγραφή αποθηκεύτηκε επιτυχώς!");
   };
+
+  useEffect(() => {
+    if (firstInputRef.current) firstInputRef.current.focus();
+  }, []);
 
   const LabeledField = ({
     label,
@@ -87,7 +94,9 @@ export default function App() {
     ref,
   }) => (
     <div>
-      {label && <label className="block text-blue-900 font-medium mb-1">{label}</label>}
+      {label && (
+        <label className="block text-blue-900 font-medium mb-1">{label}</label>
+      )}
       {isTextarea ? (
         <textarea
           name={name}
@@ -112,8 +121,6 @@ export default function App() {
     </div>
   );
 
-  const mainCategories = categories.filter((cat) => cat.parent_id === null);
-
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
       <form
@@ -125,8 +132,8 @@ export default function App() {
         </h1>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {/* 🟦 Στοιχεία Κλήσης */}
-          <div className="border border-blue-200 rounded-2xl shadow-md p-6 space-y-6">
+          {/* 🟦 Φόρμα */}
+          <div className=" border border-blue-200 rounded-2xl shadow-md p-6 space-y-6">
             <h2 className="text-lg font-semibold text-blue-900 border-b pb-2">
               Στοιχεία Κλήσης
             </h2>
@@ -211,89 +218,74 @@ export default function App() {
               Κατηγορίες
             </h2>
 
-            {mainCategories.map((cat) => {
-              const subs = categories.filter((sub) => sub.parent_id === cat.id);
+            {categories.map((cat) => (
+              <div
+                key={cat.name}
+                className={`border rounded-xl p-4 border-blue-300 transition-all ${
+                  form[cat.name]
+                    ? "shadow-md bg-white border-blue-400"
+                    : "bg-blue-50"
+                }`}
+              >
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    name={cat.name}
+                    checked={form[cat.name]}
+                    onChange={handleChange}
+                    className="appearance-none w-5 h-5 rounded border border-blue-400 checked:bg-blue-800 checked:border-blue-800 transition-all"
+                  />
+                  <span className="font-medium text-blue-900">{cat.label}</span>
+                </label>
 
-              return (
-                <div
-                  key={cat.id}
-                  className={`border rounded-xl p-4 border-blue-300 transition-all ${
-                    form[cat.name]
-                      ? "shadow-md bg-white border-blue-400"
-                      : "bg-blue-50"
-                  }`}
-                >
-                  <label className="flex items-center gap-3 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      name={cat.name}
-                      checked={form[cat.name] || false}
-                      onChange={handleChange}
-                      className="appearance-none w-5 h-5 rounded border border-blue-400 checked:bg-blue-800 checked:border-blue-800 transition-all"
-                    />
-                    <span className="font-medium text-blue-900">{cat.label}</span>
-                  </label>
+                <AnimatePresence>
+                  {form[cat.name] && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.3 }}
+                      className="mt-3 space-y-3"
+                    >
+                      {cat.subs.map((sub) => (
+                        <div key={sub.name} className="ml-6 pl-4">
+                          <label className="flex items-center gap-2 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              name={sub.name}
+                              checked={form[sub.name] || false}
+                              onChange={handleChange}
+                              className="appearance-none w-4 h-4 rounded border border-blue-300 checked:bg-blue-900 checked:border-blue-900 transition-all"
+                            />
+                            <span className="font-medium text-blue-900">
+                              {sub.label}
+                            </span>
+                          </label>
 
-                  <AnimatePresence>
-                    {form[cat.name] &&
-                      subs.map((sub) => (
-                        <motion.div
-                          key={sub.id}
-                          initial={{ opacity: 0, height: 0 }}
-                          animate={{ opacity: 1, height: "auto" }}
-                          exit={{ opacity: 0, height: 0 }}
-                          transition={{ duration: 0.3 }}
-                          className="ml-6 mt-4 pb-2 border-b border-blue-200"
-                        >
-                          {/* Γραμμή υποκατηγορίας + ΝΑΙ/ΟΧΙ */}
-<div className="flex items-center">
-  <span className="font-medium text-blue-900 w-70">{sub.label}</span>
-
-  <div className="flex gap-4 ml-auto">
-    <label className="flex items-center gap-1 cursor-pointer text-blue-900">
-      <input
-        type="radio"
-        name={sub.name}
-        value="yes"
-        checked={form[sub.name] === "yes"}
-        onChange={handleChange}
-        className="w-4 h-4"
-      />
-      ΝΑΙ
-    </label>
-
-    <label className="flex items-center gap-1 cursor-pointer text-blue-900">
-      <input
-        type="radio"
-        name={sub.name}
-        value="no"
-        checked={form[sub.name] === "no"}
-        onChange={handleChange}
-        className="w-4 h-4"
-      />
-      ΟΧΙ
-    </label>
-  </div>
-</div>
-
-
-                          {/* Σχόλια εμφανίζονται κάτω μόνο αν ΟΧΙ */}
-                          {form[sub.name] === "no" && (
-                            <div className="mt-2">
-                              <LabeledField
-                                name={`${sub.name}_comments`}
-                                value={form[`${sub.name}_comments`] || ""}
-                                onChange={handleChange}
-                                placeholder="Προσθέστε σχόλια..."
-                              />
-                            </div>
-                          )}
-                        </motion.div>
+                          <AnimatePresence>
+                            {form[sub.name] && (
+                              <motion.div
+                                initial={{ opacity: 0, height: 0 }}
+                                animate={{ opacity: 1, height: "auto" }}
+                                exit={{ opacity: 0, height: 0 }}
+                                transition={{ duration: 0.3 }}
+                              >
+                                <LabeledField
+                                  name={`${sub.name}_comments`}
+                                  value={form[`${sub.name}_comments`] || ""}
+                                  onChange={handleChange}
+                                  placeholder="Προσθέστε σχόλια..."
+                                />
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
+                        </div>
                       ))}
-                  </AnimatePresence>
-                </div>
-              );
-            })}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            ))}
           </div>
         </div>
 

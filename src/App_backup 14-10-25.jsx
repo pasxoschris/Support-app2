@@ -243,11 +243,11 @@ export default function App() {
                           animate={{ opacity: 1, height: "auto" }}
                           exit={{ opacity: 0, height: 0 }}
                           transition={{ duration: 0.3 }}
-                          className="ml-6 mt-4 pb-2 border-b border-blue-200"
+                          className="ml-6 mt-2"
                         >
                           {/* Γραμμή υποκατηγορίας + ΝΑΙ/ΟΧΙ */}
 <div className="flex items-center">
-  <span className="font-medium text-blue-900 w-70">{sub.label}</span>
+  <span className="font-medium text-blue-900 w-40">{sub.label}</span>
 
   <div className="flex gap-4 ml-auto">
     <label className="flex items-center gap-1 cursor-pointer text-blue-900">
