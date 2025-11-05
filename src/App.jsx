@@ -245,36 +245,50 @@ export default function App() {
                           transition={{ duration: 0.3 }}
                           className="ml-6 mt-4 pb-2 border-b border-blue-200"
                         >
-                          {/* Γραμμή υποκατηγορίας + ΝΑΙ/ΟΧΙ */}
+ {/* Γραμμή υποκατηγορίας + ΝΑΙ/ΟΧΙ */}
 <div className="flex items-center">
   <span className="font-medium text-blue-900 w-70">{sub.label}</span>
 
-  <div className="flex gap-4 ml-auto">
-    <label className="flex items-center gap-1 cursor-pointer text-blue-900">
-      <input
-        type="radio"
-        name={sub.name}
-        value="yes"
-        checked={form[sub.name] === "yes"}
-        onChange={handleChange}
-        className="w-4 h-4"
-      />
-      ΝΑΙ
-    </label>
+  <div className="ml-auto flex items-center">
+    <motion.button
+      type="button"
+      onClick={() =>
+        setForm((prev) => ({
+          ...prev,
+          [sub.name]: prev[sub.name] === "yes" ? "no" : "yes",
+        }))
+      }
+      className={`relative w-16 h-8 rounded-full transition-all duration-300 
+        shadow-inner flex items-center font-semibold text-xs select-none overflow-hidden
+        ${form[sub.name] === "yes" ? "bg-blue-800 text-white" : "bg-blue-100 text-gray-700"}`}
+    >
+      {/* Κείμενο ΝΑΙ/ΟΧΙ τοποθετείται ανάλογα με την επιλογή */}
+      <span
+        className={`absolute w-full px-2 transition-all duration-300 ${
+          form[sub.name] === "yes"
+            ? "text-left pl-2"
+            : "text-right pr-2"
+        }`}
+      >
+        {form[sub.name] === "yes" ? "ΝΑΙ" : "ΟΧΙ"}
+      </span>
 
-    <label className="flex items-center gap-1 cursor-pointer text-blue-900">
-      <input
-        type="radio"
-        name={sub.name}
-        value="no"
-        checked={form[sub.name] === "no"}
-        onChange={handleChange}
-        className="w-4 h-4"
+      {/* Ο slider */}
+      <motion.div
+        layout
+        transition={{ type: "spring", stiffness: 500, damping: 30 }}
+        className={`absolute top-[3px] left-[3px] w-6 h-6 bg-white rounded-full shadow-md 
+          transition-transform duration-300
+          ${form[sub.name] === "yes" ? "translate-x-8" : "translate-x-0"}`}
       />
-      ΟΧΙ
-    </label>
+    </motion.button>
   </div>
 </div>
+
+
+ 
+  {/* Τελος Γραμμή υποκατηγορίας + ΝΑΙ/ΟΧΙ */}
+
 
 
                           {/* Σχόλια εμφανίζονται κάτω μόνο αν ΟΧΙ */}
